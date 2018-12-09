@@ -13,16 +13,16 @@ namespace pong {
 class Manager {
  public:
   /* Constructors. */
-  Manager();
+  Manager() = default;
   Manager(const Manager&) = delete;
   Manager(Manager&&) = delete;
 
   /* Destructor. */
-  virtual ~Manager();
+  virtual ~Manager() = default;
 
   /* Operators. */
-  Manager& operator=(const Manager&);
-  Manager& operator=(Manager&&);
+  Manager& operator=(const Manager&) = default;
+  Manager& operator=(Manager&&) = default;
 
   /**
    * Returns the number of bounces in the game.

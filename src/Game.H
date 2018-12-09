@@ -1,6 +1,7 @@
 #ifndef GAME_H_
 #define GAME_H_
 
+#include <conditional_variable>
 #include <vector>
 
 #include "Action.H"
@@ -26,14 +27,17 @@ class Game {
   Game(Game&&) = delete;
 
   /* Destructor. */
-  virtual ~Game();
+  virtual ~Game() = default;
 
   /* Operators. */
-  Game& operator=(const Game&);
-  Game& operator=(Game&&);
+  Game& operator=(const Game&) = default;
+  Game& operator=(Game&&) = default;
 
   /* Determines if the game is over. */
   bool isOver() const;
+
+  /* When the game ends, `cv->notify_all()` is called. */
+  void subscribeToGameOver(std::conditional_variable*);
 
   /* Returns the number of bounces in the game so far. */
   size_t numberOfBounces() const;
@@ -55,8 +59,33 @@ class Game {
   Reward performAction(const Agent&, const Action);
 
  private:
-  /* Stores the players of the game. */
+  void play(const Agent&);
+  void play(const Agent&, const Agent&);
+  void updatePaddle(State*);
+  void updateState();
+  static bool ballIsInBounds(const double x, const double y);
+  static State moveBall(const State&);
+  static double distance(
+      const double x1, const double y1,
+      const double x2, const double y2);
+
+ private:
+  bool isOver_;
+  size_t numberOfBounces_;
+
+  State state_;
+
   const std::vector<Agent> agents_;
+  std::vector<std::conditional_variable*> gameOverConditionalVariables_;
+
+  mutable std::mutex agentToActionMapLock_;
+  mutable std::mutex stateLock_;
+  mutable std::mutex isOverLock_;
+
+  std::unordered_map<Agent, Action> agentToActionMap_;
+  std::unordered_map<Agent, Reward> agentToRewardMap_;
+
+  std::thread gameThread_;
 };
 
 } // namespace pong
