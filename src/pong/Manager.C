@@ -1,33 +1,38 @@
-#include <conditional_variable>
+#include <condition_variable>
 #include <memory>
 #include <mutex>
+#include <thread>
 
-#include <pong/Agent.H>
-#include <pong/Environment.H>
-#include <pong/Game.H>
-#include <pong/Manager.H>
+#include "Agent.H"
+#include "Environment.H"
+#include "Game.H"
+#include "Manager.H"
 
 namespace pong {
 
-size_t playGame(const Agent& agent) {
+size_t playGame(Agent& agent) {
   /* The game has started. */
-  Game game(agent);
+  Game game{agent};
 
-  std::conditional_variable gameOverConditionalVariable;
+  std::condition_variable gameOverConditionVariable;
   /**
    * TODO(ljeabmreosn): Add this to GameOptions since this is a race condition.
    */
-  game.subscribeToGameOver(&gameOverConditionalVariable);
+  game.subscribeToGameOver(&gameOverConditionVariable);
 
-  const Environment environment(game, agent);
+  const Environment& environment{game, agent};
 
   /* Let the agent explore. */
-  const std::thread agentThread(&agent::explore, std::ref(environment));
+  const std::thread agentThread([&agent, &environment] {
+      agent.explore(environment);
+  });
 
   /* Wait until the game is over. */
   std::mutex gameOverMutex;
   std::unique_lock<std::mutex> gameOverLock(gameOverMutex);
-  gameOverConditionalVariable.wait(gameOverLock, &game::isOver);
+  gameOverConditionVariable.wait(gameOverLock, [&game] {
+      return game.isOver();
+  });
   /* The game is now over. Don't attempt to join the agent thread. */
 
   return game.numberOfBounces();

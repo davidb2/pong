@@ -1,14 +1,26 @@
 #ifndef GAME_H_
 #define GAME_H_
 
-#include <conditional_variable>
+#include <chrono>
+#include <condition_variable>
+#include <thread>
+#include <unordered_map>
 #include <vector>
 
 #include "Action.H"
 #include "Agent.H"
 #include "Reward.H"
+#include "State.H"
 
 namespace pong {
+
+namespace constants {
+  using namespace std::chrono_literals;
+  constexpr static double PADDLE_LENGTH = 0.2;
+  constexpr static double PADDLE_MOVE_FACTOR = 0.2;
+  constexpr static std::chrono::milliseconds TICK = 1000ms;
+} // namespace constants
+using namespace constants;
 
 /**
  * This class holds the game functionality.
@@ -17,10 +29,10 @@ namespace pong {
 class Game {
  public:
   /* Play a single-player game against a wall. */
-  Game(const Agent&);
+  Game(Agent&);
 
   /* Play a two-player game against each other. */
-  Game(const Agent&, const Agent&);
+  Game(Agent&, Agent&);
 
   /* Other constructors. */
   Game(const Game&) = delete;
@@ -37,7 +49,7 @@ class Game {
   bool isOver() const;
 
   /* When the game ends, `cv->notify_all()` is called. */
-  void subscribeToGameOver(std::conditional_variable*);
+  void subscribeToGameOver(std::condition_variable*);
 
   /* Returns the number of bounces in the game so far. */
   size_t numberOfBounces() const;
@@ -60,11 +72,12 @@ class Game {
 
  private:
   void play(const Agent&);
-  void play(const Agent&, const Agent&);
-  void updatePaddle(State*);
-  void updateState();
+  void play(Agent&, Agent&);
+  bool setAction(const Agent&, const Action);
+  void updatePaddle(const Agent&, State*);
+  void updateState(const Agent&);
   static bool ballIsInBounds(const double x, const double y);
-  static State moveBall(const State&);
+  static State moveBall(const State&, const double percentage);
   static double distance(
       const double x1, const double y1,
       const double x2, const double y2);
@@ -75,15 +88,18 @@ class Game {
 
   State state_;
 
-  const std::vector<Agent> agents_;
-  std::vector<std::conditional_variable*> gameOverConditionalVariables_;
+  std::vector<Agent*> agents_;
+  std::vector<std::condition_variable*> gameOverConditionVariables_;
 
   mutable std::mutex agentToActionMapLock_;
   mutable std::mutex stateLock_;
   mutable std::mutex isOverLock_;
+  mutable std::mutex tickCvLock_;
 
-  std::unordered_map<Agent, Action> agentToActionMap_;
-  std::unordered_map<Agent, Reward> agentToRewardMap_;
+  std::condition_variable tickConditionVariable_;
+
+  std::unordered_map<const Agent*, Action> agentToActionMap_;
+  std::unordered_map<const Agent*, Reward> agentToRewardMap_;
 
   std::thread gameThread_;
 };

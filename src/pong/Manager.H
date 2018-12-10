@@ -28,13 +28,13 @@ class Manager {
    * Returns the number of bounces in the game.
    * See `Game::Game(const Agent&)`.
    */
-  size_t playGame(const Agent&);
+  size_t playGame(Agent&);
 
   /**
    * Returns the winning agent.
    * See `Game::Game(const Agent&, const Agent&)`.
    */
-  const Agent& playGame(const Agent&, const Agent&);
+  const Agent& playGame(Agent&, Agent&);
 };
 
 } // namespace pong

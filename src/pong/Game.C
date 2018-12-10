@@ -1,23 +1,23 @@
 #include <chrono>
 #include <cmath>
-#include <conditional_variable>
+#include <condition_variable>
 #include <iostream>
 #include <random>
 #include <thread>
 #include <unordered_map>
 
-#include <pong/Action.H>
-#include <pong/Agent.H>
-#include <pong/Game.H>
-#include <pong/Reward.H>
-#include <pong/State.H>
+#include "Action.H"
+#include "Agent.H"
+#include "Game.H"
+#include "Reward.H"
+#include "State.H"
 
 namespace pong {
 
-Game::Game(const Agent& agent)
+Game::Game(Agent& agent)
     : isOver_{false}
     , numberOfBounces_{0u} {
-  agents_.push_back(agent);
+  agents_.push_back(&agent);
 
   std::random_device randomDevice;
   std::mt19937 randomNumberGenerator(randomDevice());
@@ -36,42 +36,40 @@ Game::Game(const Agent& agent)
   } while (std::abs(state_.ballDy) < 1e-6 || std::abs(state_.ballDx) < 1e-6);
   /* End initial conditions. */
 
-  gameThread_ = std::thread([&this, agent] { play(agent); });
+  void (Game::*playFn)(const Agent&) = &Game::play;
+  gameThread_ = std::thread(playFn, std::ref(agent));
 }
 
 void Game::play(const Agent& agent) {
-  const static double PADDLE_LENGTH = 0.2;
-  const static double PADDLE_MOVE_FACTOR = 0.2;
-  const static std::chrono::milliseconds TICK = 1000ms;
-
   while (true) {
     std::this_thread::sleep_for(TICK);
 
     {
-      std::lock_guard stateGuard(stateLock_);
-      updateState();
+      std::lock_guard<std::mutex> stateGuard(stateLock_);
+      updateState(agent);
       std::cout << "x: " << state_.ballX << ", "
                 << "y: " << state_.ballY << std::endl;
 
       /* Check if the game is over. */
       {
-        std::lock_guard isOverGuard(isOverLock_);
+        std::lock_guard<std::mutex> isOverGuard(isOverLock_);
         if (isOver_) {
-          for (auto& cv : gameOverConditionalVariables_) {
-            cv.notify_all();
+          for (auto*& cv : gameOverConditionVariables_) {
+            cv->notify_all();
           }
           break;
         }
       }
     }
+    tickConditionVariable_.notify_all();
   }
 
   std::cout << "Game is over. " << std::endl;
 }
 
-void Game::updateState() {
+void Game::updateState(const Agent& agent) {
   State newState;
-  updatePaddle(&newState);
+  updatePaddle(agent, &newState);
 
   double percentage = 1;
   newState = moveBall(state_, percentage);
@@ -85,8 +83,8 @@ void Game::updateState() {
     const double ox = state_.ballX;
     const double oy = state_.ballY;
     /* New position. */
-    const double nx = newState.ballX;
-    const double ny = newState.ballY;
+    // const double nx = newState.ballX;
+    // const double ny = newState.ballY;
     /* Velocities. */
     const double dx = newState.ballDx;
     const double dy = newState.ballDy;
@@ -152,10 +150,10 @@ void Game::updateState() {
   state_ = newState;
 }
 
-void Game::updatePaddle(State* newState) {
-  std::lock_guard agentToActionMapGuard(agentToActionMap_);
+void Game::updatePaddle(const Agent& agent, State* newState) {
+  std::lock_guard<std::mutex> guard(agentToActionMapLock_);
   newState->paddleY = state_.paddleY + 
-      MOVE_FACTOR * static_cast<int>(agentToActionMap_.at(agent));
+      PADDLE_MOVE_FACTOR * static_cast<int>(agentToActionMap_.at(&agent));
 
   if (newState->paddleY + PADDLE_LENGTH / 2.0 >= +1) {
     newState->paddleY = 1 - PADDLE_LENGTH / 2.0;
@@ -190,15 +188,15 @@ bool Game::isOver() const {
 }
 
 void Game::subscribeToGameOver(
-    std::conditional_variable* gameOverConditionalVariable) {
-  gameOverConditionalVariables_.push_back(gameOverConditionalVariable);
+    std::condition_variable* gameOverConditionVariable) {
+  gameOverConditionVariables_.push_back(gameOverConditionVariable);
 }
 
 size_t Game::numberOfBounces() const {
   return numberOfBounces_;
 }
 
-State Game::getState() const {
+State Game::getState(const Agent& agent) const {
   return state_;
 }
 
@@ -206,21 +204,22 @@ Reward Game::performAction(const Agent& agent, const Action action) {
   if (!setAction(agent, action)) {
     return Reward::NONE;
   }
-  tickConditionalVariable.wait();
-  return agentToRewardMap_.at(agent);
+  std::unique_lock<std::mutex> tickCvGuard(tickCvLock_);
+  tickConditionVariable_.wait(tickCvGuard);
+  return agentToRewardMap_.at(&agent);
 }
 
-bool Game::setAction(const Agent& aget, const Action action) {
+bool Game::setAction(const Agent& agent, const Action action) {
   std::lock_guard<std::mutex> guard(agentToActionMapLock_);
-  const auto& search = agentToActionMap_.find(agent);
+  const auto& search = agentToActionMap_.find(&agent);
   /* This should never happen if the logic in Manager.C is correct. */
   if (search == agentToActionMap_.end()) {
     std::cerr << "Invalid agent trying to perform action: "
               << std::addressof(agent) << "." << std::endl;
     return false;
   }
-  agentToActionMap_[agent] = action;
+  agentToActionMap_[&agent] = action;
   return true;
 }
 
-}
+} // namespace pong

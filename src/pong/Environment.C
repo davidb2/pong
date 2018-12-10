@@ -1,7 +1,8 @@
-#include <pong/Action.H>
-#include <pong/Agent.H>
-#include <pong/Game.H>
-#include <pong/Reward.H>
+#include "Action.H"
+#include "Agent.H"
+#include "Environment.H"
+#include "Game.H"
+#include "Reward.H"
 
 namespace pong {
 

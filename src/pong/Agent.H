@@ -3,6 +3,9 @@
 
 namespace pong {
 
+/* Forward Declaration. */
+class Environment;
+
 /**
  * Abstract class for an agent.
  */
