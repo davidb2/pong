@@ -1,5 +1,6 @@
 cc_library(
     name = "pong",
+    visibility = ["//visibility:public"],
     srcs = [
         "Action.C",
         "Environment.C",
@@ -19,7 +20,11 @@ cc_library(
     ],
     copts = [
         "-std=c++14",
-        "-fext-numeric-literals",
         "-Wfatal-errors",
+        "-Wall",
+        "-pedantic",
+    ],
+    linkopts = [
+        "-pthread",
     ],
 )

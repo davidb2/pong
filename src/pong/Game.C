@@ -18,10 +18,12 @@ Game::Game(Agent& agent)
     : isOver_{false}
     , numberOfBounces_{0u} {
   agents_.push_back(&agent);
+  agentToActionMap_[&agent] = Action::NONE;
+  agentToRewardMap_[&agent] = Reward::NONE;
 
   std::random_device randomDevice;
   std::mt19937 randomNumberGenerator(randomDevice());
-  std::uniform_real_distribution<double> distributionX(-1.0, +1.0);
+  std::uniform_real_distribution<double> distributionX(-0.5, +0.5);
   std::uniform_real_distribution<double> distributionY(-0.5, +0.5);
 
   /* Initial conditions. Note that |dx| >= |dy| for the initial velocity. */
@@ -37,7 +39,13 @@ Game::Game(Agent& agent)
   /* End initial conditions. */
 
   void (Game::*playFn)(const Agent&) = &Game::play;
-  gameThread_ = std::thread(playFn, std::ref(agent));
+  gameThread_ = std::thread(playFn, this, std::ref(agent));
+}
+
+Game::~Game() {
+  if (gameThread_.joinable()) {
+    gameThread_.detach();
+  }
 }
 
 void Game::play(const Agent& agent) {
@@ -130,6 +138,8 @@ void Game::updateState(const Agent& agent) {
           /* Game is over. */
           std::lock_guard<std::mutex> isOverGuard(isOverLock_);
           isOver_ = true;
+          state_ = newState;
+          return;
         }
         newState.ballDx *= -1;
         break;

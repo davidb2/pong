@@ -10,7 +10,7 @@
 
 namespace pong {
 
-size_t playGame(Agent& agent) {
+size_t Manager::playGame(Agent& agent) {
   /* The game has started. */
   Game game{agent};
 
@@ -23,7 +23,7 @@ size_t playGame(Agent& agent) {
   const Environment& environment{game, agent};
 
   /* Let the agent explore. */
-  const std::thread agentThread([&agent, &environment] {
+  std::thread agentThread([&agent, &environment] {
       agent.explore(environment);
   });
 
@@ -34,6 +34,7 @@ size_t playGame(Agent& agent) {
       return game.isOver();
   });
   /* The game is now over. Don't attempt to join the agent thread. */
+  agentThread.detach();
 
   return game.numberOfBounces();
 }

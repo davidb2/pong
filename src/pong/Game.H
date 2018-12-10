@@ -15,10 +15,10 @@
 namespace pong {
 
 namespace constants {
-  using namespace std::chrono_literals;
   constexpr static double PADDLE_LENGTH = 0.2;
   constexpr static double PADDLE_MOVE_FACTOR = 0.2;
-  constexpr static std::chrono::milliseconds TICK = 1000ms;
+  const static std::chrono::milliseconds TICK =
+      std::chrono::milliseconds{1000};
 } // namespace constants
 using namespace constants;
 
@@ -39,7 +39,7 @@ class Game {
   Game(Game&&) = delete;
 
   /* Destructor. */
-  virtual ~Game() = default;
+  virtual ~Game();
 
   /* Operators. */
   Game& operator=(const Game&) = default;

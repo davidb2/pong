@@ -1,7 +1,8 @@
 cc_binary(
     name = "main",
-    srcs = ["main/main.C"],
+    srcs = ["main.C"],
     deps = [
+        "//agents:agents",
         "//pong:pong",
     ],
 )
