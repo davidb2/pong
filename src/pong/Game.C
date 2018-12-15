@@ -23,8 +23,8 @@ Game::Game(Agent& agent)
 
   std::random_device randomDevice;
   std::mt19937 randomNumberGenerator(randomDevice());
-  std::uniform_real_distribution<double> distributionX(-0.5, +0.5);
-  std::uniform_real_distribution<double> distributionY(-0.5, +0.5);
+  std::uniform_real_distribution<double> distributionX(-0.25, +0.25);
+  std::uniform_real_distribution<double> distributionY(-0.25, +0.25);
 
   /* Initial conditions. Note that |dx| >= |dy| for the initial velocity. */
   state_.paddleY = 0.0;
@@ -56,7 +56,9 @@ void Game::play(const Agent& agent) {
       std::lock_guard<std::mutex> stateGuard(stateLock_);
       updateState(agent);
       std::cout << "x: " << state_.ballX << ", "
-                << "y: " << state_.ballY << std::endl;
+                << "y: " << state_.ballY << ", "
+                << "dx: " << state_.ballDx << ", "
+                << "dy: " << state_.ballDy << std::endl;
 
       /* Check if the game is over. */
       {
@@ -87,78 +89,85 @@ void Game::updateState(const Agent& agent) {
   );
 
   while (!ballIsInBounds(newState.ballX, newState.ballY)) {
-    /* Old position. */
-    const double ox = state_.ballX;
-    const double oy = state_.ballY;
-    /* New position. */
-    // const double nx = newState.ballX;
-    // const double ny = newState.ballY;
-    /* Velocities. */
-    const double dx = newState.ballDx;
-    const double dy = newState.ballDy;
-    /* Adjusted positions/percentage. */
-    double ax, ay, ap;
-
-    /* This is not a loop; it is only used for scoping purposes. */
-    do {
-      /* Check if ball hit bottom wall. */
-      ay = -1;
-      ax =  -(dx / dy) * (oy - ay) + ox;
-      ap = (ax - ox) / dx;
-      if ((-1 <= ax && ax <= +1) && (0 <= ap && ap <= +1)) {
-        newState.ballDy *= -1;
-        break;
-      }
-
-      /* Check if ball hit top wall. */
-      ay = +1;
-      ax =  -(dx / dy) * (oy - ay) + ox;
-      ap = (ax - ox) / dx;
-      if ((-1 <= ax && ax <= +1) && (0 <= ap && ap <= +1)) {
-        newState.ballDy *= -1;
-        break;
-      }
-
-      /* Check if ball hit left wall. */
-      ax = -1;
-      ay =  -(dy / dx) * (ox - ax) + oy;
-      ap = (ay - oy) / dy;
-      if ((-1 <= ay && ay <= +1) && (0 <= ap && ap <= +1)) {
-        newState.ballDx *= -1;
-        break;
-      }
-
-      /* Check if ball hit right wall. */
-      ax = +1;
-      ay =  -(dy / dx) * (ox - ax) + oy;
-      ap = (ay - oy) / dy;
-      if ((-1 <= ay && ay <= +1) && (0 <= ap && ap <= +1)) {
-        if (ay < newState.paddleY - PADDLE_LENGTH / 2.0
-         || ay > newState.paddleY + PADDLE_LENGTH / 2.0) {
-          /* Game is over. */
-          std::lock_guard<std::mutex> isOverGuard(isOverLock_);
-          isOver_ = true;
-          state_ = newState;
-          return;
-        }
-        newState.ballDx *= -1;
-        break;
-      }
-    } while (false);
+    bool gameStillGoing = determineAdjustedState(&newState);
+    if (!gameStillGoing) return;
 
     const double distanceTraveled = distance(
-        state_.ballX, ax,
-        state_.ballY, ay
+        state_.ballX, newState.ballX,
+        state_.ballY, newState.ballY
     );
     percentage -= distanceTraveled / originalDistance;
 
-    newState.ballX = ax;
-    newState.ballY = ay;
     state_ = newState;
     newState = moveBall(state_, percentage);
   }
   state_ = newState;
 }
+
+bool Game::determineAdjustedState(State* newState) {
+    /* Old position. */
+    const double ox = state_.ballX;
+    const double oy = state_.ballY;
+    /* Velocities. */
+    const double dx = newState->ballDx;
+    const double dy = newState->ballDy;
+    /* Adjusted positions/percentage. */
+    double ax, ay, ap;
+
+    /* Check if ball hit bottom wall. */
+    ay = +1;
+    ax =  -(dx / dy) * (oy - ay) + ox;
+    ap = (ax - ox) / dx;
+    if ((-1 <= ax && ax <= +1) && (0 < ap && ap <= +1) && dy > 0) {
+      newState->ballDy *= -1;
+      newState->ballX = ax;
+      newState->ballY = ay;
+      return true;
+    }
+
+    /* Check if ball hit top wall. */
+    ay = -1;
+    ax =  -(dx / dy) * (oy - ay) + ox;
+    ap = (ax - ox) / dx;
+    if ((-1 <= ax && ax <= +1) && (0 < ap && ap <= +1) && dy < 0) {
+      newState->ballDy *= -1;
+      newState->ballX = ax;
+      newState->ballY = ay;
+      return true;
+    }
+
+    /* Check if ball hit left wall. */
+    ax = -1;
+    ay =  -(dy / dx) * (ox - ax) + oy;
+    ap = (ay - oy) / dy;
+    if ((-1 <= ay && ay <= +1) && (0 < ap && ap <= +1) && dx < 0) {
+      newState->ballDx *= -1;
+      newState->ballX = ax;
+      newState->ballY = ay;
+      return true;
+    }
+
+    /* Check if ball hit right wall. */
+    ax = +1;
+    ay =  -(dy / dx) * (ox - ax) + oy;
+    ap = (ay - oy) / dy;
+    if ((-1 <= ay && ay <= +1) && (0 < ap && ap <= +1) && dx > 0) {
+      // if (ay < newState.paddleY - PADDLE_LENGTH / 2.0
+      //  || ay > newState.paddleY + PADDLE_LENGTH / 2.0) {
+      //   /* Game is over. */
+      //   std::lock_guard<std::mutex> isOverGuard(isOverLock_);
+      //   isOver_ = true;
+      //   state_ = newState;
+      //   return;
+      // }
+      newState->ballDx *= -1;
+      newState->ballX = ax;
+      newState->ballY = ay;
+      return true;
+    }
+    return true;
+}
+
 
 void Game::updatePaddle(const Agent& agent, State* newState) {
   std::lock_guard<std::mutex> guard(agentToActionMapLock_);
@@ -174,8 +183,8 @@ void Game::updatePaddle(const Agent& agent, State* newState) {
 }
 
 double Game::distance(
-    const double x1, const double y1,
-    const double x2, const double y2) {
+    const double x1, const double x2,
+    const double y1, const double y2) {
   return std::sqrt(std::pow(x2 - x1, 2) + std::pow(y2 - y1, 2));
 }
 

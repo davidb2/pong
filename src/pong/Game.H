@@ -18,7 +18,7 @@ namespace constants {
   constexpr static double PADDLE_LENGTH = 0.2;
   constexpr static double PADDLE_MOVE_FACTOR = 0.2;
   const static std::chrono::milliseconds TICK =
-      std::chrono::milliseconds{1000};
+      std::chrono::milliseconds{10};
 } // namespace constants
 using namespace constants;
 
@@ -76,11 +76,12 @@ class Game {
   bool setAction(const Agent&, const Action);
   void updatePaddle(const Agent&, State*);
   void updateState(const Agent&);
+  bool determineAdjustedState(State* newState);
   static bool ballIsInBounds(const double x, const double y);
   static State moveBall(const State&, const double percentage);
   static double distance(
-      const double x1, const double y1,
-      const double x2, const double y2);
+      const double x1, const double x2,
+      const double y1, const double y2);
 
  private:
   bool isOver_;
