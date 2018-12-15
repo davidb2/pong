@@ -58,7 +58,8 @@ void Game::play(const Agent& agent) {
       std::cout << "x: " << state_.ballX << ", "
                 << "y: " << state_.ballY << ", "
                 << "dx: " << state_.ballDx << ", "
-                << "dy: " << state_.ballDy << std::endl;
+                << "dy: " << state_.ballDy << ", "
+                << "paddle: " << state_.paddleY << std::endl;
 
       /* Check if the game is over. */
       {
@@ -79,10 +80,10 @@ void Game::play(const Agent& agent) {
 
 void Game::updateState(const Agent& agent) {
   State newState;
-  updatePaddle(agent, &newState);
 
   double percentage = 1;
   newState = moveBall(state_, percentage);
+  updatePaddle(agent, &newState);
   const double originalDistance = distance(
       state_.ballX, newState.ballX,
       state_.ballY, newState.ballY

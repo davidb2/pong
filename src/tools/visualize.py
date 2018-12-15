@@ -5,12 +5,14 @@ import re
 import sys
 import time
 
-POSITION_PATTERN = re.compile(r'x: (-?\d+.\d+), y: (-?\d+.\d+)')
+DOUBLE = r'(-?\d+\.?\d*)'
+POSITION_PATTERN = re.compile(f'x: {DOUBLE}, y: {DOUBLE},.* paddle: {DOUBLE}')
 
 def main(args):
   pygame.init()
 
   size = (args.width, args.height)
+  PADDLE_LENGTH = 0.2 * args.height
   screen = pygame.display.set_mode(size)
   clock = pygame.time.Clock()
   done = False
@@ -25,11 +27,19 @@ def main(args):
     if m:
       x = int((args.width / 2.) * float(m.group(1)) + (args.width / 2.))
       y = int((args.height / 2.) * float(m.group(2)) + (args.height / 2.))
+      paddle = int((args.height / 2.) * float(m.group(3)) + (args.height / 2.))
 
-      print(x, y)
+      print(x, y, paddle)
 
       screen.fill((0xff, 0xff, 0xff))
       pygame.draw.circle(screen, (0x00, 0x00, 0x00), (x, y), 10)
+      rect = (
+          args.width-10,
+          paddle - (PADDLE_LENGTH / 2.),
+          10,
+          PADDLE_LENGTH,
+      )
+      pygame.draw.rect(screen, (0x00, 0x00, 0x00), rect)
       pygame.display.flip()
       clock.tick(args.speed)
 
