@@ -152,17 +152,17 @@ bool Game::determineAdjustedState(State* newState) {
     ay =  -(dy / dx) * (ox - ax) + oy;
     ap = (ay - oy) / dy;
     if ((-1 <= ay && ay <= +1) && (0 < ap && ap <= +1) && dx > 0) {
-      // if (ay < newState.paddleY - PADDLE_LENGTH / 2.0
-      //  || ay > newState.paddleY + PADDLE_LENGTH / 2.0) {
-      //   /* Game is over. */
-      //   std::lock_guard<std::mutex> isOverGuard(isOverLock_);
-      //   isOver_ = true;
-      //   state_ = newState;
-      //   return;
-      // }
       newState->ballDx *= -1;
       newState->ballX = ax;
       newState->ballY = ay;
+      if (ay < newState->paddleY - PADDLE_LENGTH / 2.0
+       || ay > newState->paddleY + PADDLE_LENGTH / 2.0) {
+        /* Game is over. */
+        std::lock_guard<std::mutex> isOverGuard(isOverLock_);
+        isOver_ = true;
+        state_ = *newState;
+        return false;
+      }
       return true;
     }
     return true;
