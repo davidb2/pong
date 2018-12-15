@@ -15,7 +15,7 @@ class Agent {
    * This is the main function for exploring the environment.
    * The agent should not exit this function.
    */
-  virtual void explore(const Environment&) = 0;
+  virtual void explore(Environment&) = 0;
 
   /**
    * This function is called after the game has ended. Due to the semantics

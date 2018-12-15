@@ -20,7 +20,7 @@ size_t Manager::playGame(Agent& agent) {
    */
   game.subscribeToGameOver(&gameOverConditionVariable);
 
-  const Environment& environment{game, agent};
+  Environment environment{game, agent};
 
   /* Let the agent explore. */
   std::thread agentThread([&agent, &environment] {

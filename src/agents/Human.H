@@ -7,7 +7,7 @@
 namespace agents {
 
 class Human : public pong::Agent {
-  void explore(const pong::Environment&) override;
+  void explore(pong::Environment&) override;
   void terminate() override;
 };
 
