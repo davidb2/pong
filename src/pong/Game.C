@@ -18,7 +18,7 @@ Game::Game(Agent& agent)
     : isOver_{false}
     , numberOfBounces_{0u} {
   agents_.push_back(&agent);
-  agentToActionMap_[&agent] = Action::NONE;
+  agentToActionMap_[&agent] = {Direction::NONE, 1};
   agentToRewardMap_[&agent] = Reward::NONE;
 
   std::random_device randomDevice;
@@ -176,8 +176,13 @@ bool Game::determineAdjustedState(State* newState) {
 
 void Game::updatePaddle(const Agent& agent, State* newState) {
   std::lock_guard<std::mutex> guard(agentToActionMapLock_);
+
+  Action action = agentToActionMap_.at(&agent);
+  const int direction = static_cast<int>(action.direction);
+  const double agentPaddleMoveFactor = action.moveFactor;
+
   newState->paddleY = state_.paddleY + 
-      PADDLE_MOVE_FACTOR * static_cast<int>(agentToActionMap_.at(&agent));
+      PADDLE_MOVE_FACTOR * (direction * agentPaddleMoveFactor);
 
   if (newState->paddleY + PADDLE_LENGTH / 2.0 >= +1) {
     newState->paddleY = 1 - PADDLE_LENGTH / 2.0;
@@ -243,7 +248,8 @@ bool Game::setAction(const Agent& agent, const Action action) {
     return false;
   }
   agentToActionMap_[&agent] = action;
-  std::cout << "agent set action to " << (int) action << std::endl;
+  std::cout << "agent set action to "
+            << static_cast<int>(action.direction) << std::endl;
   return true;
 }
 

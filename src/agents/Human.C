@@ -5,25 +5,33 @@
 
 namespace agents {
 
-void Human::explore(pong::Environment& environment) {
-  double lastPaddleY = 0;
-  pong::Action lastAction = pong::Action::UP;
-  while (true) {
-    pong::State state = environment.getState();
+using pong::Action;
+using pong::Direction;
+using pong::Environment;
+using pong::Reward;
+using pong::State;
 
-    pong::Action action = pong::Action::NONE;
+void Human::explore(Environment& environment) {
+  double lastPaddleY = 0;
+  Direction lastDirection = Direction::UP;
+  while (true) {
+    State state = environment.getState();
+
+    Direction direction = Direction::NONE;
     if (state.paddleY == lastPaddleY) {
       if (state.paddleY <= 0) {
-        action = pong::Action::DOWN;
+        direction = Direction::DOWN;
       } else if (state.paddleY > 0) {
-        action = pong::Action::UP;
+        direction = Direction::UP;
       }
     } else {
-      action = lastAction;
+      direction = lastDirection;
     }
-    lastAction = action;
+    lastDirection = direction;
     lastPaddleY = state.paddleY;
-    pong::Reward reward = environment.performAction(action);
+
+    Reward reward =
+        environment.performAction({direction, 1});
   }
 }
 

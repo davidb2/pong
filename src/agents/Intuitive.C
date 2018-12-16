@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 
 #include "agents/Intuitive.H"
@@ -10,17 +11,27 @@
 
 namespace agents {
 
-void Intuitive::explore(pong::Environment& environment) {
-  while (true) {
-    pong::State state = environment.getState();
+using pong::Action;
+using pong::Direction;
+using pong::Environment;
+using pong::Reward;
+using pong::State;
 
-    pong::Action action = pong::Action::NONE;
+void Intuitive::explore(Environment& environment) {
+  while (true) {
+    State state = environment.getState();
+
+    Direction direction = Direction::NONE;
     if (state.paddleY > state.ballY) {
-      action = pong::Action::UP;
+      direction = Direction::UP;
     } else if (state.paddleY < state.ballY) {
-      action = pong::Action::DOWN;
+      direction = Direction::DOWN;
     }
-    pong::Reward reward = environment.performAction(action);
+
+    const double moveFactor = std::abs((state.paddleY - state.ballY) / 2.);
+
+    Reward reward =
+        environment.performAction({direction, moveFactor});
     std::cout << static_cast<int>(reward) << std::endl;
   }
 }
