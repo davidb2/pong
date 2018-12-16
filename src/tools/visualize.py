@@ -12,7 +12,7 @@ def main(args):
   pygame.init()
 
   size = (args.width, args.height)
-  PADDLE_LENGTH = 0.2 * args.height
+  PADDLE_LENGTH = 0.2 / 2. * args.height
   screen = pygame.display.set_mode(size)
   clock = pygame.time.Clock()
   done = False

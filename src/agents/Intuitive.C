@@ -15,9 +15,9 @@ void Intuitive::explore(pong::Environment& environment) {
     pong::State state = environment.getState();
 
     pong::Action action = pong::Action::NONE;
-    if (state.paddleY - pong::PADDLE_LENGTH / 2. > state.ballY) {
+    if (state.paddleY > state.ballY) {
       action = pong::Action::UP;
-    } else if (state.paddleY + pong::PADDLE_LENGTH / 2. < state.ballY) {
+    } else if (state.paddleY < state.ballY) {
       action = pong::Action::DOWN;
     }
     pong::Reward reward = environment.performAction(action);
