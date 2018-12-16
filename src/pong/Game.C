@@ -23,8 +23,8 @@ Game::Game(Agent& agent)
 
   std::random_device randomDevice;
   std::mt19937 randomNumberGenerator(randomDevice());
-  std::uniform_real_distribution<double> distributionX(-0.25, +0.25);
-  std::uniform_real_distribution<double> distributionY(-0.25, +0.25);
+  std::uniform_real_distribution<double> distributionX(-0.05, +0.05);
+  std::uniform_real_distribution<double> distributionY(-0.05, +0.05);
 
   /* Initial conditions. Note that |dx| >= |dy| for the initial velocity. */
   state_.paddleY = 0.0;
@@ -61,6 +61,7 @@ void Game::play(const Agent& agent) {
                 << "dy: " << state_.ballDy << ", "
                 << "paddle: " << state_.paddleY << std::endl;
 
+      tickConditionVariable_.notify_all();
       /* Check if the game is over. */
       {
         std::lock_guard<std::mutex> isOverGuard(isOverLock_);
@@ -72,7 +73,6 @@ void Game::play(const Agent& agent) {
         }
       }
     }
-    tickConditionVariable_.notify_all();
   }
 
   std::cout << "Game is over. " << std::endl;
@@ -89,6 +89,7 @@ void Game::updateState(const Agent& agent) {
       state_.ballY, newState.ballY
   );
 
+  agentToRewardMap_[agents_[0]] = Reward::NONE;
   while (!ballIsInBounds(newState.ballX, newState.ballY)) {
     bool gameStillGoing = determineAdjustedState(&newState);
     if (!gameStillGoing) return;
@@ -162,8 +163,11 @@ bool Game::determineAdjustedState(State* newState) {
         std::lock_guard<std::mutex> isOverGuard(isOverLock_);
         isOver_ = true;
         state_ = *newState;
+        agentToRewardMap_[agents_[0]] = Reward::BAD;
         return false;
       }
+      numberOfBounces_++;
+      agentToRewardMap_[agents_[0]] = Reward::GOOD;
       return true;
     }
     return true;
@@ -239,6 +243,7 @@ bool Game::setAction(const Agent& agent, const Action action) {
     return false;
   }
   agentToActionMap_[&agent] = action;
+  std::cout << "agent set action to " << (int) action << std::endl;
   return true;
 }
 

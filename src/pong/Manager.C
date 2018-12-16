@@ -33,6 +33,7 @@ size_t Manager::playGame(Agent& agent) {
   gameOverConditionVariable.wait(gameOverLock, [&game] {
       return game.isOver();
   });
+
   /* The game is now over. Don't attempt to join the agent thread. */
   agentThread.detach();
 

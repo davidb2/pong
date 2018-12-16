@@ -27,7 +27,7 @@ def main(args):
     if m:
       x = int((args.width / 2.) * float(m.group(1)) + (args.width / 2.))
       y = int((args.height / 2.) * float(m.group(2)) + (args.height / 2.))
-      paddle = int((args.height / 2.) * float(m.group(3)) + (args.height / 2.))
+      paddle = int(args.height * ((1. + float(m.group(3))) / 2.))
 
       print(x, y, paddle)
 

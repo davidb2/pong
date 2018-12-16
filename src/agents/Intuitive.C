@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "agents/Intuitive.H"
 #include "pong/Action.H"
 #include "pong/Agent.H"
@@ -19,6 +21,7 @@ void Intuitive::explore(pong::Environment& environment) {
       action = pong::Action::DOWN;
     }
     pong::Reward reward = environment.performAction(action);
+    std::cout << static_cast<int>(reward) << std::endl;
   }
 }
 
