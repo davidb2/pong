@@ -11,6 +11,12 @@ using pong::Environment;
 using pong::Reward;
 using pong::State;
 
+MonteCarlo::MonteCarlo()
+  : randomNumberGenerator_{randomDevice_()}
+  , directionDistribution_{-1, +1}
+  , moveFactorDistribution_{-1., +1.} {
+}
+
 void MonteCarlo::explore(Environment& environment) {
   if (numGames_ > 100) {
     play(environment);
@@ -45,15 +51,16 @@ void MonteCarlo::play(Environment& environment) {
     double maxValue = NAN;
     Direction bestDirection = Direction::NONE;
     double bestMoveFactor = 0.;
-    for (int direction = 0; direction < MonteCarlo::DIRECTIONS; direction++) {
+    for (int direction = -1; direction <= +1; direction++) {
       for (int moveFactor = 0;
           moveFactor < MonteCarlo::PARTITIONS; moveFactor++) {
 
-        const double value = V_[ballX][ballY][paddleY][direction][moveFactor];
+        const double value = V_[ballX][ballY][paddleY][1 + direction][moveFactor];
         if (std::isnan(maxValue) || value > maxValue) {
           maxValue = value;
           bestDirection = static_cast<Direction>(direction);
-          bestMoveFactor = moveFactor;
+          bestMoveFactor =
+              2. * (static_cast<double>(moveFactor) / MonteCarlo::PARTITIONS) - 1.;
         }
       }
     }
@@ -69,7 +76,7 @@ void MonteCarlo::terminate() {
     const int ballX = discretize(states_[i].ballX);
     const int ballY = discretize(states_[i].ballY);
     const int paddleY = discretize(states_[i].paddleY);
-    const int direction = static_cast<int>(actions_[i].direction);
+    const int direction = 1 + static_cast<int>(actions_[i].direction);
     const int moveFactor = discretize(actions_[i].moveFactor);
 
     const Reward reward = rewards_[i];

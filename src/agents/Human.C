@@ -14,7 +14,7 @@ using pong::State;
 void Human::explore(Environment& environment) {
   double lastPaddleY = 0;
   Direction lastDirection = Direction::UP;
-  while (true) {
+  while (environment.isActive()) {
     State state = environment.getState();
 
     Direction direction = Direction::NONE;

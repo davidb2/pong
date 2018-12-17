@@ -14,7 +14,7 @@
 
 namespace pong {
 
-Game::Game(Agent& agent)
+Game::Game(const Agent& agent)
     : isOver_{false}
     , numberOfBounces_{0u} {
   agents_.push_back(&agent);
@@ -43,9 +43,10 @@ Game::Game(Agent& agent)
 }
 
 Game::~Game() {
-  if (gameThread_.joinable()) {
-    gameThread_.detach();
-  }
+  gameThread_.join();
+  // if (gameThread_.joinable()) {
+  //   gameThread_.detach();
+  // }
 }
 
 void Game::play(const Agent& agent) {

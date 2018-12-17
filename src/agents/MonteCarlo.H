@@ -14,10 +14,7 @@ namespace agents {
 
 class MonteCarlo : public pong::Agent {
  public:
-  MonteCarlo()
-    : randomNumberGenerator_{randomDevice_()}
-    , directionDistribution_{-1, +1}
-    , moveFactorDistribution_{-1., +1.} {}
+  MonteCarlo();
 
   void explore(pong::Environment&) override;
   void terminate() override;
@@ -28,12 +25,12 @@ class MonteCarlo : public pong::Agent {
   int discretize(const double);
 
  private:
-  static constexpr int PARTITIONS = 10;
+  static constexpr int PARTITIONS = 20;
   static constexpr int DIRECTIONS = 3;
 
   /* [ballX][ballY][paddleY][direction][moveFactor] */
-  double V_[PARTITIONS][PARTITIONS][PARTITIONS][DIRECTIONS][PARTITIONS];
-  double N_[PARTITIONS][PARTITIONS][PARTITIONS][DIRECTIONS][PARTITIONS];
+  double V_[PARTITIONS][PARTITIONS][PARTITIONS][DIRECTIONS][PARTITIONS] = {};
+  double N_[PARTITIONS][PARTITIONS][PARTITIONS][DIRECTIONS][PARTITIONS] = {};
 
   std::vector<pong::State> states_;
   std::vector<pong::Action> actions_;

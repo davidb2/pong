@@ -24,21 +24,23 @@ size_t Manager::playGame(Agent& agent) {
 
   /* Let the agent explore. */
   std::thread agentThread([&agent, &environment] {
-      agent.explore(environment);
+    agent.explore(environment);
+
+    /* Let the agent store any relevant information. This may hang forever. */
+    agent.terminate();
   });
 
   /* Wait until the game is over. */
-  std::mutex gameOverMutex;
-  std::unique_lock<std::mutex> gameOverLock(gameOverMutex);
-  gameOverConditionVariable.wait(gameOverLock, [&game] {
-      return game.isOver();
-  });
-
-  /* Let the agent store any relevant information. This may hang forever. */
-  agent.terminate();
+  {
+    std::mutex gameOverMutex;
+    std::unique_lock<std::mutex> gameOverLock(gameOverMutex);
+    gameOverConditionVariable.wait(gameOverLock, [&game] {
+        return game.isOver();
+    });
+  }
 
   /* The game is now over. Don't attempt to join the agent thread. */
-  agentThread.detach();
+  agentThread.join();
 
   return game.numberOfBounces();
 }

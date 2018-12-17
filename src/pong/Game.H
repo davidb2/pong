@@ -29,7 +29,7 @@ using namespace constants;
 class Game {
  public:
   /* Play a single-player game against a wall. */
-  Game(Agent&);
+  Game(const Agent&);
 
   /* Play a two-player game against each other. */
   Game(Agent&, Agent&);
@@ -89,7 +89,7 @@ class Game {
 
   State state_;
 
-  std::vector<Agent*> agents_;
+  std::vector<const Agent*> agents_;
   std::vector<std::condition_variable*> gameOverConditionVariables_;
 
   mutable std::mutex agentToActionMapLock_;
