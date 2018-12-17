@@ -4,16 +4,15 @@
 
 #include "agents/Human.H"
 #include "agents/Intuitive.H"
+#include "agents/MonteCarlo.H"
 #include "pong/Manager.H"
 
 int main() {
   pong::Manager manager;
-  agents::Intuitive intuitive;
+  agents::MonteCarlo monteCarlo;
   while (true) {
     std::cout << "Playing pong ..." << std::endl;
-    size_t bounces = manager.playGame(intuitive);
-    std::cout << bounces << " bounces. " << std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds{1});
-    break;
+    size_t bounces = manager.playGame(monteCarlo);
+    std::cout << bounces << " bounces." << std::endl;
   }
 }

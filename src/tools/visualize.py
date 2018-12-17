@@ -7,6 +7,7 @@ import time
 
 DOUBLE = r'(-?\d+\.?\d*)'
 POSITION_PATTERN = re.compile(f'x: {DOUBLE}, y: {DOUBLE},.* paddle: {DOUBLE}')
+SCORE_PATTERN = re.compile(r'(\d+) bounces.')
 
 def main(args):
   pygame.init()
@@ -23,13 +24,18 @@ def main(args):
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         done = True
+    m = re.search(SCORE_PATTERN, line)
+    if m:
+      print(line)
+      continue
+
     m = re.search(POSITION_PATTERN, line)
     if m:
       x = int((args.width / 2.) * float(m.group(1)) + (args.width / 2.))
       y = int((args.height / 2.) * float(m.group(2)) + (args.height / 2.))
       paddle = int(args.height * ((1. + float(m.group(3))) / 2.))
 
-      print(x, y, paddle)
+      # print(x, y, paddle)
 
       screen.fill((0xff, 0xff, 0xff))
       pygame.draw.circle(screen, (0x00, 0x00, 0x00), (x, y), 10)

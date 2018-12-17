@@ -4,10 +4,12 @@ cc_library(
     srcs = [
         "Human.C",
         "Intuitive.C",
+        "MonteCarlo.C",
     ],
     hdrs = [
         "Human.H",
         "Intuitive.H",
+        "MonteCarlo.H",
     ],
     deps = [
         "//pong:pong",
