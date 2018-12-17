@@ -1,5 +1,7 @@
+#include <chrono>
 #include <cmath>
 #include <iostream>
+#include <thread>
 
 #include "agents/Intuitive.H"
 #include "pong/Action.H"
@@ -18,7 +20,7 @@ using pong::Reward;
 using pong::State;
 
 void Intuitive::explore(Environment& environment) {
-  while (true) {
+  while (environment.isActive()) {
     State state = environment.getState();
 
     Direction direction = Direction::NONE;
@@ -32,6 +34,7 @@ void Intuitive::explore(Environment& environment) {
 
     Reward reward =
         environment.performAction({direction, moveFactor});
+
     std::cout << static_cast<int>(reward) << std::endl;
   }
 }

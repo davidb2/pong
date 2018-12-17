@@ -37,7 +37,9 @@ class Environment {
   State getState() const;
 
   /* See `Game::performAction(const Agent&, const Action)`. */
-  Reward performAction(const Action);
+  Reward performAction(const Action&);
+
+  bool isActive() const;
 
  private:
   Game& game_;

@@ -13,8 +13,12 @@ State Environment::getState() const {
   return game_.getState(agent_);
 }
 
-Reward Environment::performAction(const Action action) {
+Reward Environment::performAction(const Action& action) {
   return game_.performAction(agent_, action);
+}
+
+bool Environment::isActive() const {
+  return !game_.isOver();
 }
 
 } // namespace pong

@@ -177,7 +177,7 @@ bool Game::determineAdjustedState(State* newState) {
 void Game::updatePaddle(const Agent& agent, State* newState) {
   std::lock_guard<std::mutex> guard(agentToActionMapLock_);
 
-  Action action = agentToActionMap_.at(&agent);
+  const Action& action = agentToActionMap_.at(&agent);
   const int direction = static_cast<int>(action.direction);
   const double agentPaddleMoveFactor = action.moveFactor;
 
@@ -229,7 +229,7 @@ State Game::getState(const Agent& agent) const {
   return state_;
 }
 
-Reward Game::performAction(const Agent& agent, const Action action) {
+Reward Game::performAction(const Agent& agent, const Action& action) {
   if (!setAction(agent, action)) {
     return Reward::NONE;
   }
@@ -238,7 +238,7 @@ Reward Game::performAction(const Agent& agent, const Action action) {
   return agentToRewardMap_.at(&agent);
 }
 
-bool Game::setAction(const Agent& agent, const Action action) {
+bool Game::setAction(const Agent& agent, const Action& action) {
   std::lock_guard<std::mutex> guard(agentToActionMapLock_);
   const auto& search = agentToActionMap_.find(&agent);
   /* This should never happen if the logic in Manager.C is correct. */

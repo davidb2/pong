@@ -34,6 +34,9 @@ size_t Manager::playGame(Agent& agent) {
       return game.isOver();
   });
 
+  /* Let the agent store any relevant information. This may hang forever. */
+  agent.terminate();
+
   /* The game is now over. Don't attempt to join the agent thread. */
   agentThread.detach();
 

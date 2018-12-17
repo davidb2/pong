@@ -68,12 +68,12 @@ class Game {
    * blocking, the rewards will be the same and will correspond to last time
    * `performAction` was called.
    */
-  Reward performAction(const Agent&, const Action);
+  Reward performAction(const Agent&, const Action&);
 
  private:
   void play(const Agent&);
   void play(Agent&, Agent&);
-  bool setAction(const Agent&, const Action);
+  bool setAction(const Agent&, const Action&);
   void updatePaddle(const Agent&, State*);
   void updateState(const Agent&);
   bool determineAdjustedState(State* newState);
