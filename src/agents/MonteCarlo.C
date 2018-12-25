@@ -1,4 +1,5 @@
 #include <cmath>
+#include <iostream>
 #include <random>
 
 #include "agents/MonteCarlo.H"
@@ -18,7 +19,7 @@ MonteCarlo::MonteCarlo()
 }
 
 void MonteCarlo::explore(Environment& environment) {
-  if (numGames_ > 100) {
+  if (numGames_ % 50 >= 40) {
     play(environment);
   } else {
     practice(environment);
@@ -51,19 +52,25 @@ void MonteCarlo::play(Environment& environment) {
     double maxValue = NAN;
     Direction bestDirection = Direction::NONE;
     double bestMoveFactor = 0.;
+    std::cout << "values: ";
     for (int direction = -1; direction <= +1; direction++) {
       for (int moveFactor = 0;
           moveFactor < MonteCarlo::PARTITIONS; moveFactor++) {
 
         const double value = V_[ballX][ballY][paddleY][1 + direction][moveFactor];
+        std::cout << value << " ";
         if (std::isnan(maxValue) || value > maxValue) {
           maxValue = value;
           bestDirection = static_cast<Direction>(direction);
           bestMoveFactor =
               2. * (static_cast<double>(moveFactor) / MonteCarlo::PARTITIONS) - 1.;
+          std::cout << "(got " << direction << ", " << bestMoveFactor << ") ";
         }
       }
     }
+
+    std::cout << static_cast<int>(bestDirection) << " "
+              << bestMoveFactor << std::endl;
 
     const Reward reward =
         environment.performAction({bestDirection, bestMoveFactor});
@@ -80,7 +87,10 @@ void MonteCarlo::terminate() {
     const int moveFactor = discretize(actions_[i].moveFactor);
 
     const Reward reward = rewards_[i];
-    accumulatedReward += static_cast<int>(reward);
+    accumulatedReward = static_cast<int>(reward)
+        + MonteCarlo::DISCOUNT_FACTOR * accumulatedReward;
+
+    std::cout << "reward " << static_cast<int>(reward) << std::endl;
 
     const int n = ++N_[ballX][ballY][paddleY][direction][moveFactor];
     double* v = &V_[ballX][ballY][paddleY][direction][moveFactor];
@@ -89,6 +99,8 @@ void MonteCarlo::terminate() {
      *                          = (n * avg({x_1, ..., x_n}) + x_{n+1}) / (n+1) 
      */
     *v = (1. / n) * ((n-1) * (*v) + accumulatedReward);
+    std::cout << "new value of " << (*v) << " "
+              << accumulatedReward << std::endl;
   }
 
   states_.clear();

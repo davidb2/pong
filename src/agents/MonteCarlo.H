@@ -25,8 +25,9 @@ class MonteCarlo : public pong::Agent {
   int discretize(const double);
 
  private:
-  static constexpr int PARTITIONS = 20;
+  static constexpr int PARTITIONS = 5;
   static constexpr int DIRECTIONS = 3;
+  static constexpr double DISCOUNT_FACTOR = 0.9;
 
   /* [ballX][ballY][paddleY][direction][moveFactor] */
   double V_[PARTITIONS][PARTITIONS][PARTITIONS][DIRECTIONS][PARTITIONS] = {};
