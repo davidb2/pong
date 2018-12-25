@@ -21,8 +21,9 @@ class TD : public pong::Agent {
 
  private:
   void learn(const pong::State& currentState);
-  pong::Action getBestAction(const pong::State&);
-  int discretize(const double);
+  pong::Action getBestAction(const pong::State&) const;
+  pong::Action getRandomAction(const pong::State&);
+  int discretize(const double) const;
 
  private:
   static constexpr int PARTITIONS = 5;
@@ -37,7 +38,13 @@ class TD : public pong::Agent {
   pong::Action lastAction_;
   pong::Reward lastReward_;
 
-  int numGames_ = 0;
+  int numGames_;
+
+  std::random_device randomDevice_;
+  std::mt19937 randomNumberGenerator_;
+  std::uniform_int_distribution<int> directionDistribution_;
+  std::uniform_real_distribution<double> moveFactorDistribution_;
+  std::uniform_real_distribution<double> uniformDistribution_;
 };
 
 } // namespace agents

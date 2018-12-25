@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <random>
 
 #include "agents/TD.H"
 
@@ -15,6 +16,11 @@ TD::TD()
     : lastState_{}
     , lastAction_{}
     , lastReward_{Reward::NONE}
+    , numGames_{0}
+    , randomNumberGenerator_{randomDevice_()}
+    , directionDistribution_{-1, +1}
+    , moveFactorDistribution_{-1., +1.}
+    , uniformDistribution_{0, 1}
     {}
 
 void TD::explore(Environment& environment) {
@@ -23,7 +29,12 @@ void TD::explore(Environment& environment) {
 
     learn(state);
 
-    const Action action = getBestAction(state);
+    const bool exploit =
+        uniformDistribution_(randomNumberGenerator_) > (1. / numGames_);
+
+    const Action action =
+        exploit ? getBestAction(state) : getRandomAction(state);
+
     const Reward reward =
         environment.performAction(action);
 
@@ -62,7 +73,7 @@ void TD::learn(const State& currentState) {
             << qBest << " " << static_cast<int>(lastReward_) << std::endl;
 }
 
-Action TD::getBestAction(const State& state) {
+Action TD::getBestAction(const State& state) const {
   const int ballX = discretize(state.ballX);
   const int ballY = discretize(state.ballY);
   const int paddleY = discretize(state.paddleY);
@@ -92,11 +103,19 @@ Action TD::getBestAction(const State& state) {
   return {bestDirection, bestMoveFactor};
 }
 
+Action TD::getRandomAction(const State& state) {
+  const Direction direction = static_cast<Direction>(
+      directionDistribution_(randomNumberGenerator_)
+  );
+  const double moveFactor = moveFactorDistribution_(randomNumberGenerator_);
+  return {direction, moveFactor};
+}
+
 void TD::terminate() {
   numGames_++;
 }
 
-int TD::discretize(const double num) {
+int TD::discretize(const double num) const {
   int discrete = static_cast<int>(std::floor(
       TD::PARTITIONS * (num + 1.) / 2.
   ));
