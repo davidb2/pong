@@ -10,24 +10,30 @@ POSITION_PATTERN = re.compile(f'x: {DOUBLE}, y: {DOUBLE},.* paddle: {DOUBLE}')
 SCORE_PATTERN = re.compile(r'(\d+) bounces.')
 
 def main(args):
-  pygame.init()
 
   size = (args.width, args.height)
-  PADDLE_LENGTH = 0.2 / 2. * args.height
-  screen = pygame.display.set_mode(size)
-  clock = pygame.time.Clock()
+  PADDLE_LENGTH = 0.4 / 2. * args.height
   done = False
+  games = 0
 
   for line in sys.stdin:
+    m = re.search(SCORE_PATTERN, line)
+    if m:
+      print(line)
+      games += 1
+      continue
+    if games < args.game_delay:
+      continue
+    elif games == args.game_delay:
+      pygame.init()
+      screen = pygame.display.set_mode(size)
+      clock = pygame.time.Clock()
+
     if done:
       break
     for event in pygame.event.get():
       if event.type == pygame.QUIT:
         done = True
-    m = re.search(SCORE_PATTERN, line)
-    if m:
-      print(line)
-      continue
 
     m = re.search(POSITION_PATTERN, line)
     if m:
@@ -54,6 +60,7 @@ if __name__ == '__main__':
   parser.add_argument('--width', type=int, default=400)
   parser.add_argument('--height', type=int, default=400)
   parser.add_argument('--speed', type=float, default=60, help='updates per second')
+  parser.add_argument('--game-delay', type=float, default=0, help='when to start showing games')
   args = parser.parse_args()
   main(args)
 
