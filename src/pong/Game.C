@@ -23,16 +23,17 @@ Game::Game(const Agent& agent)
 
   std::random_device randomDevice;
   std::mt19937 randomNumberGenerator(randomDevice());
-  std::uniform_real_distribution<double> distributionX(-0.05, +0.05);
-  std::uniform_real_distribution<double> distributionY(-0.05, +0.05);
+  std::uniform_real_distribution<double> distributionDx(-0.05, +0.05);
+  std::uniform_real_distribution<double> distributionDy(-0.05, +0.05);
+  std::uniform_real_distribution<double> distributionPaddle(-1, +1);
 
   /* Initial conditions. Note that |dx| >= |dy| for the initial velocity. */
-  state_.paddleY = 0.0;
+  state_.paddleY = distributionPaddle(randomNumberGenerator);
   state_.ballX = 0.0;
   state_.ballY = 0.0;
   do {
-    state_.ballDx = distributionX(randomNumberGenerator);
-    state_.ballDy = distributionY(randomNumberGenerator);
+    state_.ballDx = distributionDx(randomNumberGenerator);
+    state_.ballDy = distributionDy(randomNumberGenerator);
     state_.ballDx +=
         ((state_.ballDx > 0) - (state_.ballDx < 0)) * std::abs(state_.ballDy);
   } while (std::abs(state_.ballDy) < 1e-6 || std::abs(state_.ballDx) < 1e-6);
@@ -249,8 +250,8 @@ bool Game::setAction(const Agent& agent, const Action& action) {
     return false;
   }
   agentToActionMap_[&agent] = action;
-  std::cout << "agent set action to "
-            << static_cast<int>(action.direction) << std::endl;
+  std::cout << "agent set action to " << static_cast<int>(action.direction)
+            << " with moveFactor " << action.moveFactor << std::endl;
   return true;
 }
 

@@ -15,8 +15,8 @@
 namespace pong {
 
 namespace constants {
-  constexpr static double PADDLE_LENGTH = 0.2;
-  constexpr static double PADDLE_MOVE_FACTOR = 1;
+  constexpr static double PADDLE_LENGTH = 0.4;
+  constexpr static double PADDLE_MOVE_FACTOR = 0.05;
   const static std::chrono::milliseconds TICK =
       std::chrono::milliseconds{10};
 } // namespace constants
