@@ -19,4 +19,4 @@ struct State {
 
 } // namespace pong
 
-#endif STATE_H_
+#endif // STATE_H_

@@ -13,28 +13,28 @@ namespace pong {
 class Manager {
  public:
   /* Constructors. */
-  Manager();
+  Manager() = default;
   Manager(const Manager&) = delete;
   Manager(Manager&&) = delete;
 
   /* Destructor. */
-  virtual ~Manager();
+  virtual ~Manager() = default;
 
   /* Operators. */
-  Manager& operator=(const Manager&);
-  Manager& operator=(Manager&&);
+  Manager& operator=(const Manager&) = default;
+  Manager& operator=(Manager&&) = default;
 
   /**
    * Returns the number of bounces in the game.
    * See `Game::Game(const Agent&)`.
    */
-  size_t playGame(const Agent&);
+  size_t playGame(Agent&);
 
   /**
    * Returns the winning agent.
    * See `Game::Game(const Agent&, const Agent&)`.
    */
-  const Agent& playGame(const Agent&, const Agent&);
+  const Agent& playGame(Agent&, Agent&);
 };
 
 } // namespace pong

@@ -27,17 +27,19 @@ class Environment {
   Environment(Environment&&) = delete;
 
   /* Destructor. */
-  virtual ~Environment();
+  virtual ~Environment() = default;
 
   /* Operators. */
-  Environment& operator=(const Environment&);
-  Environment& operator=(Environment&&);
+  Environment& operator=(const Environment&) = default;
+  Environment& operator=(Environment&&) = default;
 
   /* See `Game::getState(const Agent&)`. */
   State getState() const;
 
   /* See `Game::performAction(const Agent&, const Action)`. */
-  Reward performAction(const Action);
+  Reward performAction(const Action&);
+
+  bool isActive() const;
 
  private:
   Game& game_;
