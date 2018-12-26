@@ -1,5 +1,4 @@
 #include <cmath>
-#include <iostream>
 #include <random>
 
 #include "agents/TD.H"
@@ -104,7 +103,6 @@ Action TD::getBestAction(const State& state) const {
   const int iBestDirection = 1 + static_cast<int>(bestDirection);
   const int iBestMoveFactor = discretize(bestMoveFactor);
   double maxValue = Q_[ballX][ballY][paddleY][iBestDirection][iBestMoveFactor];
-  std::cout << "max value " << maxValue << std::endl;
 
   for (int direction = -1; direction <= +1; direction++) {
     for (int moveFactor = 0;

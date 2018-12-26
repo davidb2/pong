@@ -18,7 +18,7 @@ namespace constants {
   constexpr static double PADDLE_LENGTH = 0.4;
   constexpr static double PADDLE_MOVE_FACTOR = 0.05;
   const static std::chrono::milliseconds TICK =
-      std::chrono::milliseconds{10};
+      std::chrono::milliseconds{1};
 } // namespace constants
 using namespace constants;
 

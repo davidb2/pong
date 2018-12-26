@@ -45,9 +45,6 @@ Game::Game(const Agent& agent)
 
 Game::~Game() {
   gameThread_.join();
-  // if (gameThread_.joinable()) {
-  //   gameThread_.detach();
-  // }
 }
 
 void Game::play(const Agent& agent) {
@@ -250,8 +247,6 @@ bool Game::setAction(const Agent& agent, const Action& action) {
     return false;
   }
   agentToActionMap_[&agent] = action;
-  std::cout << "agent set action to " << static_cast<int>(action.direction)
-            << " with moveFactor " << action.moveFactor << std::endl;
   return true;
 }
 

@@ -39,7 +39,7 @@ size_t Manager::playGame(Agent& agent) {
     });
   }
 
-  /* The game is now over. Don't attempt to join the agent thread. */
+  /* The game is now over; join the agent thread. */
   agentThread.join();
 
   return game.numberOfBounces();
