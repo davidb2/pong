@@ -29,10 +29,12 @@ class TD : public pong::Agent {
   static constexpr int PARTITIONS = 5;
   static constexpr int DIRECTIONS = 3;
   static constexpr double DISCOUNT_FACTOR = 0.9;
+  static constexpr double LAMBDA = 0.9;
 
   /* [ballX][ballY][paddleY][direction][moveFactor] */
   double Q_[PARTITIONS][PARTITIONS][PARTITIONS][DIRECTIONS][PARTITIONS] = {};
   double N_[PARTITIONS][PARTITIONS][PARTITIONS][DIRECTIONS][PARTITIONS] = {};
+  double E_[PARTITIONS][PARTITIONS][PARTITIONS][DIRECTIONS][PARTITIONS] = {};
 
   pong::State lastState_;
   pong::Action lastAction_;

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3.6
 import argparse
+import matplotlib.pyplot as plt
 import pygame
 import re
 import sys
@@ -10,19 +11,21 @@ POSITION_PATTERN = re.compile(f'x: {DOUBLE}, y: {DOUBLE},.* paddle: {DOUBLE}')
 SCORE_PATTERN = re.compile(r'(\d+) bounces.')
 
 def main(args):
-
   size = (args.width, args.height)
   PADDLE_LENGTH = 0.4 / 2. * args.height
   done = False
   games = 0
+  bounces = []
 
   for line in sys.stdin:
     m = re.search(SCORE_PATTERN, line)
     if m:
       print(line)
       games += 1
+      if args.plot:
+        bounces.append(int(m.group(1)))
       continue
-    if games < args.game_delay:
+    elif games < args.game_delay:
       continue
     elif games == args.game_delay:
       pygame.init()
@@ -55,12 +58,17 @@ def main(args):
       pygame.display.flip()
       clock.tick(args.speed)
 
+  if args.plot:
+    plt.scatter(*zip(*enumerate(bounces)), marker='.')
+    plt.show()
+
 if __name__ == '__main__':
   parser = argparse.ArgumentParser('View pong ball')
   parser.add_argument('--width', type=int, default=400)
   parser.add_argument('--height', type=int, default=400)
   parser.add_argument('--speed', type=float, default=60, help='updates per second')
   parser.add_argument('--game-delay', type=float, default=0, help='when to start showing games')
+  parser.add_argument('--plot', action='store_true')
   args = parser.parse_args()
   main(args)
 

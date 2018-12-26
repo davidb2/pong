@@ -51,9 +51,6 @@ void TD::learn(const State& currentState) {
   const int direction = 1 + static_cast<int>(lastAction_.direction);
   const int moveFactor = discretize(lastAction_.moveFactor);
 
-  const int n = ++N_[ballX][ballY][paddleY][direction][moveFactor];
-  double* qLast = &Q_[ballX][ballY][paddleY][direction][moveFactor];
-
   const Action bestAction = getBestAction(currentState);
   const int currentBallX = discretize(currentState.ballX);
   const int currentBallY = discretize(currentState.ballY);
@@ -61,16 +58,39 @@ void TD::learn(const State& currentState) {
   const int bestDirection = 1 + static_cast<int>(bestAction.direction);
   const int bestMoveFactor = discretize(bestAction.moveFactor);
 
+  E_[ballX][ballY][paddleY][direction][moveFactor]++;
+  const int n = ++N_[ballX][ballY][paddleY][direction][moveFactor];
+  const double qLast = Q_[ballX][ballY][paddleY][direction][moveFactor];
   const double qBest =
       Q_[currentBallX][currentBallY][currentPaddleY][bestDirection][bestMoveFactor];
 
   /**
    * avg({x_1, ..., x_{n+1}}) = (sum({x_1, ..., x_n}) + x_{n+1}) / (n+1)
    *                          = (n * avg({x_1, ..., x_n}) + x_{n+1}) / (n+1) 
+   *                          = ((n * avg({x_1, ..., x_n})) / (n+1)) + (x_{n+1} / (n+1))
+   *                          = avg({x_1, ..., x_n}) + (x_{n+1} - avg({x_1, ..., x_n})) / (n+1)
+   *                                                   \------------------------------/
+   *                                                                  |
+   *                                                              "TD target"
    */
-  *qLast = (1. / n) * ((n-1) * (*qLast) + (static_cast<int>(lastReward_) + TD::DISCOUNT_FACTOR * qBest));
-  std::cout << "new value of " << (*qLast) << " "
-            << qBest << " " << static_cast<int>(lastReward_) << std::endl;
+  const double tdTarget =
+      static_cast<int>(lastReward_) + TD::DISCOUNT_FACTOR * qBest - qLast;
+
+  /* Q-update and eligibility trace decays. */
+  for (size_t x = 0; x < TD::PARTITIONS; x++) {
+    for (size_t y = 0; y < TD::PARTITIONS; y++) {
+      for (size_t py = 0; py < TD::PARTITIONS; py++) {
+        for (size_t d = 0; d < TD::DIRECTIONS; d++) {
+          for (size_t mf = 0; mf < TD::PARTITIONS; mf++) {
+            double* q = &Q_[x][y][py][d][mf];
+            double* e = &E_[x][y][py][d][mf];
+            *q += ((*e) / n) * tdTarget;
+            *e = TD::LAMBDA * TD::DISCOUNT_FACTOR * (*e);
+          }
+        }
+      }
+    }
+  }
 }
 
 Action TD::getBestAction(const State& state) const {
